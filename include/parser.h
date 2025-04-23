@@ -8,9 +8,9 @@
 
 typedef struct Instruction
 {
-    char tipo[16];     // Instruction type
-    int parametro;     // Numeric parameter
-    char semaforo[8];  // Semaphore name (sized for 7 chars + null terminator)
+    char type[16];     // Instruction type
+    int parameter;     // Numeric parameter
+    char sem[8];  // Semaphore name (sized for 7 chars + null terminator)
 } instr;
 
 BCP *load_program(const char *arquivo);

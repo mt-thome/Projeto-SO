@@ -3,7 +3,7 @@
 
 #define MAX_SEM 10
 #define MAX_INSTR 100
-#define MAX_NOME 50
+#define MAX_NAME 50
 #define MAX_PAGINAS 16
 
 typedef enum {
@@ -15,7 +15,7 @@ typedef enum {
 
 typedef struct {
     int id;
-    char name[MAX_NOME];
+    char name[MAX_NAME];
     int priority;
     int seg_id;
     int seg_size; // em KB
@@ -24,7 +24,7 @@ typedef struct {
     int num_io; // total de operações read/write executadas
     int pc; // índice da próxima instrução a executar
     p_state state;
-    char semaforos[MAX_SEM][MAX_NOME]; // nomes dos semáforos usados
+    char semaforos[MAX_SEM][MAX_NAME]; // nomes dos semáforos usados
     int num_sem;
     char *instruction[MAX_INSTR]; // ponteiros para as instruções do programa
     int num_instr;

@@ -25,42 +25,42 @@ BCP* carregar_programa(const char* file_path, int id_process) {
     process->num_instr = 0;
     process->num_sem = 0;
 
-    char linha[128];
+    char line[128];
     fgets(process->name, MAX_NAME, file);
     process->name[strcspn(process->name, "\n")] = 0;
 
-    fgets(linha, sizeof(linha), file);
-    process->seg_id = atoi(linha);
+    fgets(line, sizeof(line), file);
+    process->seg_id = atoi(line);
 
-    fgets(linha, sizeof(linha), file);
-    process->priority = atoi(linha);
+    fgets(line, sizeof(line), file);
+    process->priority = atoi(line);
 
-    fgets(linha, sizeof(linha), file);
-    process->seg_size = atoi(linha);
+    fgets(line, sizeof(line), file);
+    process->seg_size = atoi(line);
 
-    fgets(linha, sizeof(linha), file);
-    char* token = strtok(linha, " \n");
+    fgets(line, sizeof(line), file);
+    char* token = strtok(line, " \n");
     while (token && process->num_sem < MAX_SEM) {
         strncpy(process->semaforos[process->num_sem++], token, 7);
         token = strtok(NULL, " \n");
     }
 
-    while (fgets(linha, sizeof(linha), file)) {
+    while (fgets(line, sizeof(line), file)) {
         instr* inst = &process->instruction[process->num_instr];
-        inst->parametro = 0;
-        strcpy(inst->semaforo, "");
+        inst->parameter = 0;
+        strcpy(inst->sem, "");
 
-        char tipo[16], arg[16];
-        int lidos = sscanf(linha, "%s %s", tipo, arg);
+        char type[16], arg[16];
+        int read = sscanf(line, "%s %s", type, arg);
 
-        if (lidos == 1) {
-            strcpy(inst->tipo, tipo);
-        } else if (lidos == 2) {
-            strcpy(inst->tipo, tipo);
-            if (tipo[0] == 'P' || tipo[0] == 'V') {
-                strncpy(inst->semaforo, arg + 1, 7); // remove parênteses
+        if (read == 1) {
+            strcpy(inst->type, type);
+        } else if (read == 2) {
+            strcpy(inst->type, type);
+            if (type[0] == 'P' || type[0] == 'V') {
+                strncpy(inst->sem, arg + 1, 7); // remove parênteses
             } else {
-                inst->parametro = atoi(arg);
+                inst->parameter = atoi(arg);
             }
         }
 
