@@ -4,49 +4,49 @@
 #include "../include/bcp.h"
 #include "../include/parser.h"
 
-BCP* carregar_programa(const char* caminho_arquivo, int id_processo) {
-    FILE* arquivo = fopen(caminho_arquivo, "r");
-    if (!arquivo) {
+BCP* carregar_programa(const char* file_path, int id_process) {
+    FILE* file = fopen(file_path, "r");
+    if (!file) {
         perror("Erro ao abrir o arquivo do programa sintético");
         return NULL;
     }
 
-    BCP* processo = malloc(sizeof(BCP));
-    if (!processo) {
+    BCP* process = malloc(sizeof(BCP));
+    if (!process) {
         perror("Erro ao alocar BCP");
-        fclose(arquivo);
+        fclose(file);
         return NULL;
     }
 
-    processo->id = id_processo;
-    processo->pc = 0;
-    processo->state = READY;
-    processo->num_io = 0;
-    processo->num_instr = 0;
-    processo->num_sem = 0;
+    process->id = id_process;
+    process->pc = 0;
+    process->state = READY;
+    process->num_io = 0;
+    process->num_instr = 0;
+    process->num_sem = 0;
 
     char linha[128];
-    fgets(processo->name, MAX_NAME, arquivo);
-    processo->name[strcspn(processo->name, "\n")] = 0;
+    fgets(process->name, MAX_NAME, file);
+    process->name[strcspn(process->name, "\n")] = 0;
 
-    fgets(linha, sizeof(linha), arquivo);
-    processo->seg_id = atoi(linha);
+    fgets(linha, sizeof(linha), file);
+    process->seg_id = atoi(linha);
 
-    fgets(linha, sizeof(linha), arquivo);
-    processo->priority = atoi(linha);
+    fgets(linha, sizeof(linha), file);
+    process->priority = atoi(linha);
 
-    fgets(linha, sizeof(linha), arquivo);
-    processo->seg_size = atoi(linha);
+    fgets(linha, sizeof(linha), file);
+    process->seg_size = atoi(linha);
 
-    fgets(linha, sizeof(linha), arquivo);
+    fgets(linha, sizeof(linha), file);
     char* token = strtok(linha, " \n");
-    while (token && processo->num_sem < MAX_SEM) {
-        strncpy(processo->semaforos[processo->num_sem++], token, 7);
+    while (token && process->num_sem < MAX_SEM) {
+        strncpy(process->semaforos[process->num_sem++], token, 7);
         token = strtok(NULL, " \n");
     }
 
-    while (fgets(linha, sizeof(linha), arquivo)) {
-        instr* inst = &processo->instruction[processo->num_instr];
+    while (fgets(linha, sizeof(linha), file)) {
+        instr* inst = &process->instruction[process->num_instr];
         inst->parametro = 0;
         strcpy(inst->semaforo, "");
 
@@ -64,10 +64,10 @@ BCP* carregar_programa(const char* caminho_arquivo, int id_processo) {
             }
         }
 
-        processo->num_instr++;
-        if (processo->num_instr >= MAX_INSTR) break;
+        process->num_instr++;
+        if (process->num_instr >= MAX_INSTR) break;
     }
 
-    fclose(arquivo);
-    return processo;
+    fclose(file);
+    return process;
 }
