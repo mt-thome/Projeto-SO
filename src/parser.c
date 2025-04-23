@@ -4,7 +4,7 @@
 #include "../include/bcp.h"
 #include "../include/parser.h"
 
-BCP* carregar_programa(const char* file_path, int id_process) {
+BCP* load_program(const char* file_path, int id_process) {
     FILE* file = fopen(file_path, "r");
     if (!file) {
         perror("Erro ao abrir o arquivo do programa sintético");
