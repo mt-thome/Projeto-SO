@@ -4,6 +4,7 @@
 #include "../include/bcp.h"
 #include "../include/parser.h"
 
+// Cria um programa usando o arquivo de programa sintético
 BCP* load_program(const char* file_path, int id_process) {
     FILE* file = fopen(file_path, "r");
     if (!file) {
@@ -58,7 +59,7 @@ BCP* load_program(const char* file_path, int id_process) {
         } else if (read == 2) {
             strcpy(inst->type, type);
             if (type[0] == 'P' || type[0] == 'V') {
-                strncpy(inst->sem, arg + 1, 7); // remove parênteses
+                strncpy(inst->sem, arg + 1, 7); 
             } else {
                 inst->parameter = atoi(arg);
             }

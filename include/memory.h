@@ -9,8 +9,8 @@
 
 typedef struct {
     int busy_page[TOTAL_PAGES];
-    int owner_page[TOTAL_PAGES]; // id do processo dono da página
-    int reference[TOTAL_PAGES]; // bit de segunda chance
+    int owner_page[TOTAL_PAGES]; 
+    int reference[TOTAL_PAGES]; 
 } mem_manager;
 
 void mem_init(mem_manager *mem);

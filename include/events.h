@@ -21,4 +21,3 @@ int interrupt_control();
 int sys_call();
 
 #endif
-// Fim do arquivo events.h

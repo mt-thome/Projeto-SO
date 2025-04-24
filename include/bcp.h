@@ -28,11 +28,14 @@ typedef struct {
     int num_sem;
     char *instruction[MAX_INSTR]; // ponteiros para as instruções do programa
     int num_instr;
+    BCP *next // ponteiro para o próximo processo
 } BCP;
 
 // Funções
+void init_bcp();
 BCP *new_process(const char *file);
 void end_process(BCP *proc);
+BCP *get_process(int id);
 
 #endif
 // Fim do arquivo bcp.h

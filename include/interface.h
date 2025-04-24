@@ -9,4 +9,3 @@ void show_process(BCP **fila, int total);
 void show_mem(mem_manager *mem);
 
 #endif
-// Fim do arquivo interface.h
