@@ -22,7 +22,6 @@ typedef struct {
     int allocated_pages[MAX_PAGINAS]; // índices das páginas na memória
     int num_pages; // quantidade de páginas alocadas
     int num_io; // total de operações read/write executadas
-    int pc; // índice da próxima instrução a executar
     p_state state;
     char semaforos[MAX_SEM][MAX_NAME]; // nomes dos semáforos usados
     int num_sem;
@@ -33,7 +32,7 @@ typedef struct {
 
 // Funções
 void init_bcp();
-BCP *new_process(const char *file);
+BCP *new_process(const char *file, BCP *new);
 void end_process(BCP *proc);
 BCP *get_process(int id);
 

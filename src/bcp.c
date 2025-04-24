@@ -8,18 +8,29 @@
 static BCP* bcp_list;
 static int next_id;
 
+int get_next_id() {
+    return next_id++;
+}
+
 void init_bcp() {
     bcp_list = NULL;
     next_id = 1;
 }
 
-BCP *new_process(const char *file_path) {
-    // Carregar processo do arquivo sintético usando o parser
-    BCP *new_proc = load_program(file_path, next_id++);
-    
-    if (!new_proc) {
-        fprintf(stderr, "Erro ao carregar programa do arquivo: %s\n", file_path);
-        return NULL;
+BCP *new_process(const char *file_path, BCP *new) {
+    BCP *new_proc = NULL;
+    // Verifica se o programa a ser inserido é de um arquivo ou é inserido pelo usuário
+    if(file_path == NULL) {
+        fprintf(stderr, "Caminho do arquivo inválido.\n");
+        new_proc=new;
+    }
+    else{
+        // Carregar processo do arquivo sintético usando o parser
+        BCP *new_proc = load_program(file_path, next_id++);
+        if (!new_proc) {
+            fprintf(stderr, "Erro ao carregar programa do arquivo: %s\n", file_path);
+            return NULL;
+        }
     }
     
     // Inicializa as páginas alocadas

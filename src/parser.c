@@ -5,7 +5,7 @@
 #include "../include/parser.h"
 
 // Cria um programa usando o arquivo de programa sintético
-BCP* load_program(const char* file_path, int id_process) {
+BCP* load_program(const char* file_path) {
     FILE* file = fopen(file_path, "r");
     if (!file) {
         perror("Erro ao abrir o arquivo do programa sintético");
@@ -18,9 +18,7 @@ BCP* load_program(const char* file_path, int id_process) {
         fclose(file);
         return NULL;
     }
-
-    process->id = id_process;
-    process->pc = 0;
+    process->id = get_next_id();
     process->state = READY;
     process->num_io = 0;
     process->num_instr = 0;
