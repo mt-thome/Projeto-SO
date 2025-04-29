@@ -1,6 +1,11 @@
 #ifndef EVENTS_H
 #define EVENTS_H
 
+#include "bcp.h"
+
+#define MAX_SEM 10
+
+// Tipos de eventos (como especificado no projeto)
 typedef enum {
     PROCESS_INTERRUPT = 1,
     PROCESS_CREATE = 2,
@@ -13,11 +18,22 @@ typedef enum {
     FS_FINISH = 9,
     SEMAPHORE_P = 10,
     SEMAPHORE_V = 11,
+    PROCESS_RUN = 12,
     PRINT_REQUEST = 14,
     PRINT_FINISH = 15
 } event;
 
-int interrupt_control();
-int sys_call();
+// Estrutura para semáforos
+typedef struct {
+    char name[MAX_NAME];
+    int value;
+} Semaphore;
+
+// Declaração das funções principais
+int interrupt_control(event e, BCP* proc);
+int sys_call(event e, BCP* proc, const char* arg);
+
+// Funções auxiliares (caso precise expor)
+Semaphore* find_semaphore(const char* name);
 
 #endif
