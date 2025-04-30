@@ -103,7 +103,6 @@ BCP *new_process(const char *file_path, BCP *new) {
     return new_proc;
 }
 
-// Libera os recursos alocados para um processo e o remove da lista de processos
 void end_process(BCP *proc) {
     if (!proc) {
         fprintf(stderr, "Erro: Tentativa de finalizar um processo NULL\n");
@@ -143,8 +142,7 @@ void end_process(BCP *proc) {
     free(proc);
 }
 
-// Encontra um processo pelo ID
-BCP *get_process(int id) {
+BCP *get_process(int id) { // Busca um processo na lista de processos pelo ID
     BCP *temp = bcp_list;
     
     while (temp) {
@@ -155,4 +153,8 @@ BCP *get_process(int id) {
     }
     // Processo não encontrado
     return NULL;
+}
+
+BCP *get_bcp() { // Retorna a lista de processos
+    return bcp_list;
 }
