@@ -6,6 +6,7 @@
 #include "../include/bcp.h"
 
 int num_processos = 0;
+#define time_slicing
 
 BCP** init (BCP *BCP_lista, int *num_processos){
 
@@ -45,4 +46,18 @@ BCP *Array_To_List(BCP **Array, int *num_processos){
         Array[*num_processos - 1]->next = NULL;  // último elemento aponta para NULL
         return Array[0]; // novo head da lista
     
+}
+
+BCP *rodar_Processo(BCP *processo){
+    int i=0;
+    for(i=0; i<processo->tempo_exec&&i<time_slicing;i++);
+    //ao sair do for, verificar se foi por time_slicing ou tempo exec acabou
+    if(i<tempo_exec){
+        processo->tempo_exec = processo->tempo_exec - i;
+        return processo;
+    }
+    else{
+        //Rodou tudo
+        //...
+    }
 }
