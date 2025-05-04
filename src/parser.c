@@ -23,6 +23,7 @@ BCP* load_program(const char* file_path) {
     process->num_io = 0;
     process->num_instr = 0;
     process->num_sem = 0;
+    process->pc = 0; 
 
     char line[128];
     fgets(process->name, MAX_NAME, file);
@@ -44,27 +45,46 @@ BCP* load_program(const char* file_path) {
         token = strtok(NULL, " \n");
     }
 
-    while (fgets(line, sizeof(line), file)) {
-        instr* inst = &process->instruction[process->num_instr];
+    // Lendo e alocando cada instrução
+    while (fgets(line, sizeof(line), file) && process->num_instr < MAX_INSTR) {
+        // Aloca uma nova instrução
+        instr* inst = (instr*)malloc(sizeof(instr));
+        if (!inst) {
+            perror("Erro ao alocar instrução");
+            // Limpa memória alocada até agora
+            for (int i = 0; i < process->num_instr; i++) {
+                free(process->instruction[i]);
+            }
+            free(process);
+            fclose(file);
+            return NULL;
+        }
+        
+        // Inicializa a instrução
         inst->parameter = 0;
         strcpy(inst->sem, "");
+        strcpy(inst->type, "");
 
         char type[16], arg[16];
         int read = sscanf(line, "%s %s", type, arg);
 
-        if (read == 1) {
+        if (read >= 1) {
             strcpy(inst->type, type);
-        } else if (read == 2) {
-            strcpy(inst->type, type);
-            if (type[0] == 'P' || type[0] == 'V') {
-                strncpy(inst->sem, arg + 1, 7); 
-            } else {
-                inst->parameter = atoi(arg);
+            
+            if (read == 2) {
+                if (type[0] == 'P' || type[0] == 'V') {
+                    // Para operações de semáforo
+                    strncpy(inst->sem, arg + 1, 7);  // Removendo o $ inicial
+                } else {
+                    // Para outras operações com parâmetro numérico
+                    inst->parameter = atoi(arg);
+                }
             }
         }
 
+        // Armazena a instrução alocada no array
+        process->instruction[process->num_instr] = inst;
         process->num_instr++;
-        if (process->num_instr >= MAX_INSTR) break;
     }
 
     fclose(file);

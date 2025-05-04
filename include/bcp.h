@@ -6,6 +6,8 @@
 #define MAX_NAME 50
 #define MAX_PAGINAS 16
 
+#include "parser.h"
+
 typedef enum {
     READY,
     RUNNING,
@@ -26,7 +28,7 @@ typedef struct BCP {  // Adicionado nome da struct para auto-referência
     p_state state;
     char semaforos[MAX_SEM][MAX_NAME]; // nomes dos semáforos usados
     int num_sem;
-    char *instruction[MAX_INSTR]; // ponteiros para as instruções do programa
+    instr *instruction[MAX_INSTR]; // ponteiros para as instruções do programa
     int num_instr;
     struct BCP *next; // ponteiro para o próximo processo (corrigido de 'BCP *' para 'struct BCP *')
     
