@@ -13,6 +13,6 @@ typedef struct Instruction
     char sem[8];  // Semaphore name (sized for 7 chars + null terminator)
 } instr;
 
-BCP *load_program(const char *file_path);
+BCP *load_program(const char *file_path, int next_id);
 
 #endif

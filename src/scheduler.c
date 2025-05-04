@@ -50,10 +50,10 @@ BCP *Array_To_List(BCP **Array, int *num_processos){
 
 BCP *rodar_Processo(BCP *processo){
     int i=0;
-    for(i=0; i<processo->tempo_exec&&i<time_slicing;i++);
+    for(i=0; i<processo->tempo_execucao && i<time_slicing; i++);
     //ao sair do for, verificar se foi por time_slicing ou tempo exec acabou
-    if(i<tempo_exec){
-        processo->tempo_exec = processo->tempo_exec - i;
+    if(i<processo->tempo_execucao){   
+        processo->tempo_execucao = processo->tempo_execucao - i;
         return processo;
     }
     else{
