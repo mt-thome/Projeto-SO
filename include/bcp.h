@@ -25,18 +25,13 @@ typedef struct BCP {  // Adicionado nome da struct para auto-referência
     int seg_size; // em KB
     int allocated_pages[MAX_PAGINAS]; // índices das páginas na memória
     int num_pages; // quantidade de páginas alocadas
-    int num_io; // total de operações read/write executadas
     p_state state;
     char semaforos[MAX_SEM][MAX_NAME]; // nomes dos semáforos usados
     int num_sem;
     instr *instruction[MAX_INSTR]; // ponteiros para as instruções do programa
     int num_instr;
+    int quantum_time; // tempo de execução do processo
     struct BCP *next; // ponteiro para o próximo processo (corrigido de 'BCP *' para 'struct BCP *')
-    
-    // Campos de tempo adicionados conforme necessidade
-    int tempo_execucao;    // Para controle de 'exec t'
-    int tempo_io;         // Para operações de E/S
-    int tempo_carregamento; // Para memLoadReq/Finish
     
     // Controle de recursos
     int disco_em_uso;

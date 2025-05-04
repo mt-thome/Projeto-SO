@@ -6,19 +6,19 @@
 #include "../include/cpu.h"
 
 CPU cpu;
-int pc = 0;
+int pc;
 
 void init_cpu(){
     loop_cpu();
+    int pc = 0;
+    cpu.quantum_time = 0;
+    cpu.loop_ready = 1;
 }
 
 void loop_cpu(){
     BCP *processo_rodando;
     while(cpu.loop_ready){
 
-        usleep(100000); // 100ms e não 1s
-        cpu.quantum_time++;
-        
         inicializa_processos_ready(get_bcp()); 
         if (processo_rodando && processo_rodando->instruction[processo_rodando->num_instr]->pc >= processo_rodando->num_instr) {
             end_process(processo_rodando); 
@@ -41,12 +41,18 @@ void executar_processo(BCP *processo){
     int time_slicing_local = time_slicing;
     int i=0;
     while(i<MAX_INSTR||time_slicing_local>0){
-        if(processo->instruction[i]==0){
+        if(processo->instruction[i]==0){ 
             i++;
             continue;
         }
         if(strcmp(processo->instruction[i]->type, "exec") == 0){
-            printf("\nExecutando o comando por %dms", processo->instruction[i]->parameter);
+            if(processo->quantum_time > time_slicing_local){
+                cpu.quantum_time += processo->instruction[i]->parameter;
+                printf("\nExecutando o comando por %dms", time_slicing_local);
+                processo->instruction[i]->parameter -= time_slicing_local;
+                i++;
+                continue;
+            }
             usleep(processo->instruction[i]->parameter * 1000); // Use the parameter value
         } 
         else if(strcmp(processo->instruction[i]->type, "read") == 0){
@@ -86,8 +92,8 @@ void executar_processo(BCP *processo){
 
 }
 
-int get_cpu_pc(){
-    return pc;
+CPU get_cpu(){
+    return cpu;
 }
 
 void set_cpu_pc(int new_pc){

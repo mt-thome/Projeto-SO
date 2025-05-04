@@ -8,6 +8,7 @@
 typedef struct {
     char name[MAX_NAME];
     int value;
+    int waiting_processes[MAX_SEM]; // IDs dos processos esperando
 } Semaphore;
 
 Semaphore semaphores[MAX_SEM];
@@ -42,11 +43,13 @@ int create_semaphore(const char* name, int initial_value) {
 
 // --- Implementação completa em português ---
 
-int interrupt_control(event e, BCP* proc) {
+int interrupt_control(event e, BCP* proc, int instr_index) {
     switch (e) {
         case PROCESS_INTERRUPT:
             if (proc->state == RUNNING) {
                 proc->state = READY;
+                proc->quantum_time = 0; // Reinicia o quantum
+                end_process(proc);
                 printf("[INTERRUPÇÃO] Processo %d: quantum expirado\n", proc->id);
             }
             break;
@@ -54,20 +57,20 @@ int interrupt_control(event e, BCP* proc) {
         case DISK_FINISH:
             proc->disco_em_uso = 0;
             proc->state = READY;
-            proc->tempo_io = 0;
+            proc->instruction[instr_index]->quantum_time = 0;
             printf("[DISCO] Processo %d: operação de disco concluída\n", proc->id);
             break;
             
         case PRINT_FINISH:
             proc->impressora_em_uso = 0;
             proc->state = READY;
-            proc->tempo_io = 0;
+            proc->instruction[instr_index]->quantum_time = 0;
             printf("[IMPRESSORA] Processo %d: impressão concluída\n", proc->id);
             break;
             
         case MEM_LOAD_FINISH:
             proc->state = READY;
-            proc->tempo_carregamento = 0;
+            proc->quantum_time = 0;
             printf("[MEMÓRIA] Processo %d: carregamento concluído\n", proc->id);
             break;
             
@@ -83,25 +86,10 @@ int interrupt_control(event e, BCP* proc) {
     return 0;
 }
 
-int sys_call(event e, BCP* proc, const char* arg) {
+int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
     switch (e) {
         case PROCESS_CREATE: {
-            BCP* new_proc = new_process(arg, NULL);
-            if (new_proc) {
-                new_proc->state = READY;
-                printf("[PROCESSO] Criado processo %d a partir de %s\n", new_proc->id, arg);
-                
-                // Inicializa campos de tempo
-                new_proc->tempo_execucao = 0;
-                new_proc->tempo_io = 0;
-                new_proc->tempo_carregamento = 0;
-                new_proc->disco_em_uso = 0;
-                new_proc->impressora_em_uso = 0;
-                
-                return new_proc->id;
-            }
-            fprintf(stderr, "[ERRO] Falha ao criar processo a partir de %s\n", arg);
-            return -1;
+            new_process(NULL, proc);
         }
         
         case PROCESS_FINISH:
@@ -115,20 +103,21 @@ int sys_call(event e, BCP* proc, const char* arg) {
             if (sem) {
                 if (sem->value > 0) {
                     sem->value--;
-                    printf("[SEMÁFORO] Processo %d adquiriu %s (contagem: %d)\n", 
-                           proc->id, arg, sem->value);
+                    printf("[SEMÁFORO] Processo %d adquiriu %s (contagem: %d)\n", proc->id, arg, sem->value);
+                    proc->state = RUNNING;
+                    sem->waiting_processes[sem->value] = proc->id;
                 } else {
                     proc->state = BLOCKED;
-                    printf("[SEMÁFORO] Processo %d bloqueado em %s (indisponível)\n", 
-                           proc->id, arg);
+                    printf("[SEMÁFORO] Processo %d bloqueado em %s (indisponível)\n", proc->id, arg);
+                    
                 }
             } else {
                 // Cria semáforo se não existir com valor inicial 1
                 if (create_semaphore(arg, 1) == 0) {
                     sem = find_semaphore(arg);
                     sem->value--;
-                    printf("[SEMÁFORO] Criado novo semáforo %s para processo %d\n",
-                           arg, proc->id);
+                    sem->waiting_processes[sem->value] = proc->id;
+                    printf("[SEMÁFORO] Criado novo semáforo %s para processo %d\n", arg, proc->id);
                 } else {
                     fprintf(stderr, "[ERRO] Semáforo %s não encontrado\n", arg);
                     return -1;
@@ -141,9 +130,8 @@ int sys_call(event e, BCP* proc, const char* arg) {
             Semaphore* sem = find_semaphore(arg);
             if (sem) {
                 sem->value++;
-                printf("[SEMÁFORO] Processo %d liberou %s (contagem: %d)\n",
-                       proc->id, arg, sem->value);
-                
+                printf("[SEMÁFORO] Processo %d liberou %s (contagem: %d)\n", proc->id, arg, sem->value);
+                sem ->waiting_processes[sem->value] = 0; 
                 // Poderia acordar processos bloqueados aqui
             } else {
                 fprintf(stderr, "[ERRO] Semáforo %s não encontrado\n", arg);
@@ -154,25 +142,24 @@ int sys_call(event e, BCP* proc, const char* arg) {
         
         case MEM_LOAD_REQ:
             proc->state = BLOCKED;
-            proc->tempo_carregamento = 3; // 3 unidades de tempo
-            printf("[MEMÓRIA] Processo %d solicitou carregamento (%d unidades)\n", 
-                   proc->id, proc->tempo_carregamento);
+            int tempo_carregamento = proc->instruction[instr_index]->quantum_time; 
+            printf("[MEMÓRIA] Processo %d solicitou carregamento (%d unidades)\n", proc->id, tempo_carregamento);
+            inicializar_processos_ready(get_bcp(), proc->instruction[instr_index]->quantum_time);
+            // Aqui você pode adicionar lógica para alocar memória
             break;
             
         case DISK_REQUEST:
             proc->state = BLOCKED;
             proc->disco_em_uso = 1;
-            proc->tempo_io = 4; // 4 unidades de tempo
-            printf("[DISCO] Processo %d solicitou E/S de disco (%d unidades)\n",
-                   proc->id, proc->tempo_io);
+            printf("[DISCO] Processo %d solicitou E/S de disco (%d unidades)\n", proc->id, proc->instruction[instr_index]->quantum_time);
+            inicializar_processos_ready(get_bcp(), proc->instruction[instr_index]->quantum_time);
             break;
             
         case PRINT_REQUEST:
             proc->state = BLOCKED;
             proc->impressora_em_uso = 1;
-            proc->tempo_io = 2; // 2 unidades de tempo
-            printf("[IMPRESSORA] Processo %d solicitou impressão (%d unidades)\n",
-                   proc->id, proc->tempo_io);
+            printf("[IMPRESSORA] Processo %d solicitou impressão (%d unidades)\n", proc->id, proc->instruction[instr_index]->quantum_time);
+            inicializar_processos_ready(get_bcp(), proc->instruction[instr_index]->quantum_time);
             break;
             
         case FS_REQUEST:
@@ -183,10 +170,13 @@ int sys_call(event e, BCP* proc, const char* arg) {
         // Caso especial para execução de programa (exec t)
         case PROCESS_RUN:
             if (arg) {
-                proc->tempo_execucao = atoi(arg);
+                int tempo_exec;
                 proc->state = RUNNING;
-                printf("[PROCESSO] Processo %d executando por %d unidades de tempo\n",
-                       proc->id, proc->tempo_execucao);
+                if(proc->instruction[instr_index]->quantum_time > time_slicing) 
+                    tempo_exec = time_slicing;
+                else
+                    tempo_exec = proc->quantum_time;
+                printf("[PROCESSO] Processo %d executando por %d unidades de tempo\n", proc->id, tempo_exec) ;
             }
             break;
             
@@ -197,30 +187,54 @@ int sys_call(event e, BCP* proc, const char* arg) {
     return 0;
 }
 
-// Função para atualizar tempos (deve ser chamada periodicamente)
-void update_timers(BCP* proc) {
-    if (proc->state == RUNNING && proc->tempo_execucao > 0) {
-        proc->tempo_execucao--;
-        if (proc->tempo_execucao == 0) {
-            interrupt_control(PROCESS_INTERRUPT, proc);
+void update_timers(BCP* proc, int instr_index) {
+    if (!proc) {
+        return; // Proteção contra ponteiro nulo
+    }
+    
+    // Caso 1: Processo em execução sem parâmetro específico (atualização geral do quantum)
+    if (proc->state == RUNNING && proc->quantum_time > 0 && instr_index == 0) {
+        proc->quantum_time -= get_cpu().quantum_time;
+        if (proc->quantum_time <= 0) {
+            proc->quantum_time = 0;
+            interrupt_control(PROCESS_INTERRUPT, proc, instr_index);
         }
     }
     
-    if (proc->tempo_io > 0) {
-        proc->tempo_io--;
-        if (proc->tempo_io == 0) {
-            if (proc->disco_em_uso) {
-                interrupt_control(DISK_FINISH, proc);
-            } else if (proc->impressora_em_uso) {
-                interrupt_control(PRINT_FINISH, proc);
+    // Caso 2: Atualização com índice específico de instrução
+    if (proc->quantum_time > 0 && instr_index != 0) {
+        if (instr_index >= 0 && instr_index < proc->num_instr && proc->instruction[instr_index]) {
+            proc->quantum_time -= get_cpu().quantum_time;
+            
+            if (strcmp(proc->instruction[instr_index]->type, "read") == 0 || strcmp(proc->instruction[instr_index]->type, "write") == 0) {
+                // Reduz o tempo restante da instrução
+                proc->instruction[instr_index]->parameter -= get_cpu().quantum_time;
+                sys_call(DISK_REQUEST, proc, NULL, instr_index);
+                // Se a operação de I/O terminou
+                if (proc->instruction[instr_index]->parameter <= 0) {
+                    proc->instruction[instr_index]->parameter = 0;
+                    // Gera interrupção apropriada quando operação termina
+                    if (strcmp(proc->instruction[instr_index]->type, "read") == 0) {
+                        interrupt_control(DISK_FINISH, proc, instr_index);
+                    } else {
+                        interrupt_control(DISK_FINISH, proc, instr_index);
+                    }
+                }
             }
         }
     }
     
-    if (proc->tempo_carregamento > 0) {
-        proc->tempo_carregamento--;
-        if (proc->tempo_carregamento == 0) {
-            interrupt_control(MEM_LOAD_FINISH, proc);
+    // Atualiza contadores de I/O e carregamento de memória
+    if (proc->state == BLOCKED) {
+        if (proc->instruction[instr_index]->quantum_time > 0) {
+            proc->instruction[instr_index]->quantum_time -= get_cpu().quantum_time;
+            if (proc->instruction[instr_index]->quantum_time <= 0) {
+                if (proc->disco_em_uso) {
+                    interrupt_control(DISK_FINISH, proc, 0);
+                } else if (proc->impressora_em_uso) {
+                    interrupt_control(PRINT_FINISH, proc, 0);
+                }
+            }
         }
     }
 }

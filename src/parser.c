@@ -20,7 +20,6 @@ BCP* load_program(const char* file_path, int next_id) {
     }
     process->id = get_next_id();
     process->state = READY;
-    process->num_io = 0;
     process->num_instr = 0;
     process->num_sem = 0;
     process->rw_count = 0; 
@@ -70,25 +69,33 @@ BCP* load_program(const char* file_path, int next_id) {
 
         if (read >= 1) {
             strcpy(inst->type, type);
-            if(strcmp(type, "read") == 0 || strcmp(type, "write") == 0)
+            if(strcmp(type, "read") == 0 || strcmp(type, "write") == 0){
                 process->rw_count++;
+                process->quantum_time += BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
+                process->instruction[process->num_instr]->quantum_time = BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
+            }
             if (read == 2) {
-                if (type[0] == 'P' || type[0] == 'V') {
-                    // Para operações de semáforo
-                    strncpy(inst->sem, arg + 1, 7);  // Removendo o $ inicial
+                if (type[0] == 'P') {
+                    strncpy(inst->sem, arg + 1, 7);  
+                    sys_call(SEMAPHORE_P, process, inst->sem);  
+                } else if(type[0] == 'V'){
+                    strncpy(inst->sem, arg + 1, 7);  
+                    sys_call(SEMAPHORE_V, process, inst->sem);
                 } else {
-                    // Para outras operações com parâmetro numérico
                     inst->parameter = atoi(arg);
                 }
             }
         }
-
         // Armazena a instrução alocada no array
         process->instruction[process->num_instr] = inst;
         process->num_instr++;
     }
-
-    set_cpu_pc(get_cpu_pc()+process->num_instr); 
+    process->num_instr--; // Decrementa para não contar a última linha lida
+    for( int i = 0; i < process->num_instr; i++) {
+        if(strcmp(process->instruction[i]->type, "exec") == 0 || strcmp(process->instruction[i]->type, "print") == 0)
+            process->quantum_time += process->instruction[i]->parameter;
+    }
+    set_cpu_pc((get_cpu()).pc+process->num_instr); 
     fclose(file);
     return process;
 }

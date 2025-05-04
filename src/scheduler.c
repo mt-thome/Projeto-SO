@@ -53,12 +53,14 @@ BCP *retirar_processo(BCP *head) {
     return best;
 }
 
-void inicializar_processos_ready(BCP *head) {
+void inicializar_processos_ready(BCP *head, int tempo_exec) {
     BCP *curr = head;
     while (curr != NULL) {
         curr->state = READY;
         curr = curr->next;
     }
+    if(tempo_exec != 0)
+        curr->quantum_time = tempo_exec;
 }
 
 
