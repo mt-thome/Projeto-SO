@@ -7,6 +7,7 @@
 #define MAX_PAGINAS 16
 
 #include "parser.h"
+#include "memory.h"
 
 typedef enum {
     READY,
@@ -19,12 +20,12 @@ typedef struct BCP {  // Adicionado nome da struct para auto-referência
     int id;
     char name[MAX_NAME];
     int priority;
+    int rw_count; // Contador de operações de leitura/escrita
     int seg_id;
     int seg_size; // em KB
     int allocated_pages[MAX_PAGINAS]; // índices das páginas na memória
     int num_pages; // quantidade de páginas alocadas
     int num_io; // total de operações read/write executadas
-    int pc; // Adicionado program counter que estava faltando
     p_state state;
     char semaforos[MAX_SEM][MAX_NAME]; // nomes dos semáforos usados
     int num_sem;

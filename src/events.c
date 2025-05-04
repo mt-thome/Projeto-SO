@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "../include/events.h"
-#include "../include/bcp.h"
 
 // Variáveis globais para semáforos
 typedef struct {

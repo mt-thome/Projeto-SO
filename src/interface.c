@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../include/bcp.h"
-#include "../include/memory.h"
-#include "../include/parser.h"
+
 #include "../include/interface.h"
 
 void show_menu() {

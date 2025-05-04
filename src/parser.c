@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../include/bcp.h"
+
 #include "../include/parser.h"
 
 // Cria um programa usando o arquivo de programa sintético
@@ -23,7 +23,7 @@ BCP* load_program(const char* file_path, int next_id) {
     process->num_io = 0;
     process->num_instr = 0;
     process->num_sem = 0;
-    process->pc = 0; 
+    process->rw_count = 0; 
 
     char line[128];
     fgets(process->name, MAX_NAME, file);
@@ -60,7 +60,7 @@ BCP* load_program(const char* file_path, int next_id) {
             return NULL;
         }
         
-        // Inicializa a instrução
+        inst->pc = get_next_pc(); 
         inst->parameter = 0;
         strcpy(inst->sem, "");
         strcpy(inst->type, "");
@@ -70,7 +70,8 @@ BCP* load_program(const char* file_path, int next_id) {
 
         if (read >= 1) {
             strcpy(inst->type, type);
-            
+            if(strcmp(type, "read") == 0 || strcmp(type, "write") == 0)
+                process->rw_count++;
             if (read == 2) {
                 if (type[0] == 'P' || type[0] == 'V') {
                     // Para operações de semáforo
@@ -87,6 +88,8 @@ BCP* load_program(const char* file_path, int next_id) {
         process->num_instr++;
     }
 
+    set_cpu_pc(get_cpu_pc()+process->num_instr); 
     fclose(file);
     return process;
 }
+

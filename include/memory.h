@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include "bcp.h"
+#include "../include/bcp.h"
 
 #define TOTAL_PAGES 1024
 #define PAGES_OS 64
