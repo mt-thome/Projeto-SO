@@ -16,9 +16,9 @@ void mem_init() {
         exit(EXIT_FAILURE);
     }
     for (int i = 0; i < TOTAL_PAGES; i++) {
-        get_memory_manager()->busy_page[i] = (i < PAGES_OS) ? 1 : 0;
-        get_memory_manager()->owner_page[i] = -1;
-        get_memory_manager()->reference[i] = 0;
+        main_memory->busy_page[i] = (i < PAGES_OS) ? 1 : 0;
+        main_memory->owner_page[i] = -1;
+        main_memory->reference[i] = 0;
     }
     memory_initialized = 1;
 }

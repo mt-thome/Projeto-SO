@@ -12,6 +12,8 @@ int show_menu() {
     printf("2. Listar processos\n");
     printf("3. Listar memória\n");
     printf("4. Sair\n");
+    printf("5. Loop de CPU por um time\n");
+
     scanf("%d", &option);
     switch (option) {
         case 1:
@@ -55,6 +57,9 @@ int show_menu() {
         case 4:
             printf("Saindo...\n");
             return 1; // Sair do loop
+        case 5:
+            loop_cpu();
+            break;
         default:
             printf("Opção inválida. Tente novamente.\n");
     }

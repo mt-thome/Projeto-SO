@@ -3,10 +3,13 @@
 #include <string.h>
 
 #include "../include/parser.h"
+#include "../include/bcp.h" 
 
 // Cria um programa usando o arquivo de programa sintético
 BCP* load_program(const char* file_path, int next_id) {
+    printf("oi");
     FILE* file = fopen(file_path, "r");
+    printf("oi");
     if (!file) {
         perror("Erro ao abrir o arquivo do programa sintético");
         return NULL;
@@ -27,6 +30,13 @@ BCP* load_program(const char* file_path, int next_id) {
     process->instr_index = 0;
     process->next = NULL; 
 
+    for(int i=0;i<MAX_INSTR;i++){
+
+        instr* inst = malloc(sizeof(instr));  // ✔️ correto
+        process->instruction[i] = inst;
+    
+    }
+
     char line[128];
     fgets(process->name, MAX_NAME, file);
     process->name[strcspn(process->name, "\n")] = 0;
@@ -42,9 +52,11 @@ BCP* load_program(const char* file_path, int next_id) {
 
     fgets(line, sizeof(line), file);
     char* token = strtok(line, " \n");
+
     while (token && process->num_sem < MAX_SEM) {
         strncpy(process->semaforos[process->num_sem++], token, 7);
         token = strtok(NULL, " \n");
+
     }
 
     // Lendo e alocando cada instrução
@@ -62,6 +74,8 @@ BCP* load_program(const char* file_path, int next_id) {
             return NULL;
         }
         
+        printf("\n%s",inst);
+
         inst->pc = get_next_id(); 
         inst->parameter = 0;
         strcpy(inst->sem, "");
@@ -69,13 +83,16 @@ BCP* load_program(const char* file_path, int next_id) {
 
         char type[16], arg[16];
         int read = sscanf(line, "%s %s", type, arg);
-
+        printf("Process Indice : %d",process->num_instr);
+        printf("\nType %s e Arg %s",type,arg);
+        printf("\n%dRead",read);
         if (read >= 1) {
             strcpy(inst->type, type);
             if(strcmp(type, "read") == 0 || strcmp(type, "write") == 0){
                 process->quantum_time += BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
                 process->instruction[process->num_instr]->quantum_time = BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
             }
+
             if (read == 2) {
                 if (type[0] == 'P') {
                     strncpy(inst->sem, arg + 1, 7);  
@@ -91,7 +108,7 @@ BCP* load_program(const char* file_path, int next_id) {
         // Armazena a instrução alocada no array
         process->instruction[process->num_instr] = inst;
         process->num_instr++;
-    }
+     }
     process->num_instr--; // Decrementa para não contar a última linha lida
     for( int i = 0; i < process->num_instr; i++) {
         if(strcmp(process->instruction[i]->type, "exec") == 0 || strcmp(process->instruction[i]->type, "print") == 0)

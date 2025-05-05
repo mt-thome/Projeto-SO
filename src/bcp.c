@@ -34,14 +34,7 @@ BCP *new_process(const char *file_path, BCP *new) {
             fprintf(stderr, "Erro ao alocar memória para o novo processo.\n");
             return NULL;
         }
-        else{
-            // Carregar processo do arquivo sintético usando o parser
-            BCP *new_proc = load_program(file_path, next_id++);
-            if (!new_proc) {
-                fprintf(stderr, "Erro ao carregar programa do arquivo: %s\n", file_path);
-                return NULL;
-            }
-        }
+        
         
         // Inicializa as páginas alocadas
         for (int i = 0; i < MAX_PAGINAS; i++) {
@@ -84,22 +77,22 @@ BCP *new_process(const char *file_path, BCP *new) {
             printf("Processo %d: %d páginas alocadas após swap.\n", 
             new_proc->id, new_proc->num_pages);
         }
-
-        // Adiciona o novo processo à lista de processos
-        if (bcp_list == NULL) {
-            bcp_list = new_proc;
-            new_proc->next = NULL;
-        } else {
-            BCP *temp = bcp_list;
-            while (temp->next != NULL) {
-                temp = temp->next;
-            }
-            temp->next = new_proc;
-            new_proc->next = NULL;
-        }
-    
-        printf("Novo processo criado com ID %d a partir do arquivo: %s\n", new_proc->id, file_path);
     } 
+    // Adiciona o novo processo à lista de processos
+    if (bcp_list == NULL) {
+        bcp_list = new_proc;
+        new_proc->next = NULL;
+
+    } else {
+        BCP *temp = bcp_list;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = new_proc;
+        new_proc->next = NULL;
+    }
+
+    printf("Novo processo criado com ID %d a partir do arquivo: %s\n", new_proc->id, file_path);
     return new_proc;
 }
 
