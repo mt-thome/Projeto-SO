@@ -16,6 +16,15 @@ typedef enum {
     TERMINATED
 } p_state;
 
+typedef struct Instruction
+{
+    char type[16];     // Instruction type
+    int parameter;     // Numeric parameter
+    char sem[8];  // Semaphore name (sized for 7 chars + null terminator)
+    int pc; // Program counter
+    int quantum_time; // Tempo de execução do instrução em ms
+} instr;
+
 typedef struct BCP {  // Adicionado nome da struct para auto-referência
     int id;
     char name[MAX_NAME];
@@ -30,6 +39,7 @@ typedef struct BCP {  // Adicionado nome da struct para auto-referência
     int num_sem;
     instr *instruction[MAX_INSTR]; // ponteiros para as instruções do programa
     int num_instr;
+    int instr_index; // índice da instrução atual
     int quantum_time; // tempo de execução do processo
     struct BCP *next; // ponteiro para o próximo processo (corrigido de 'BCP *' para 'struct BCP *')
     

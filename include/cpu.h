@@ -20,5 +20,6 @@ void loop_cpu();
 void executar_processo(BCP *processo);
 CPU get_cpu();
 void set_cpu_pc(int pc);
+void set_cpu_qt(int qt);
 
 #endif

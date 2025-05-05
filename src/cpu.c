@@ -10,7 +10,7 @@ int pc;
 
 void init_cpu(){
     loop_cpu();
-    int pc = 0;
+    cpu.pc = 0;
     cpu.quantum_time = 0;
     cpu.loop_ready = 1;
 }
@@ -19,7 +19,7 @@ void loop_cpu(){
     BCP *processo_rodando;
     while(cpu.loop_ready){
 
-        inicializa_processos_ready(get_bcp()); 
+        inicializa_processos_ready(get_bcp() , 0); 
         if (processo_rodando && processo_rodando->instruction[processo_rodando->num_instr]->pc >= processo_rodando->num_instr) {
             end_process(processo_rodando); 
             processo_rodando = NULL;
@@ -37,28 +37,16 @@ void loop_cpu(){
 }
 
 void executar_processo(BCP *processo){
-
-    int time_slicing_local = time_slicing;
     int i=0;
-    while(i<MAX_INSTR||time_slicing_local>0){
-        if(processo->instruction[i]==0){ 
-            i++;
-            continue;
-        }
+    while(i < MAX_INSTR || get_cpu().quantum_time > 0){
         if(strcmp(processo->instruction[i]->type, "exec") == 0){
-            if(processo->quantum_time > time_slicing_local){
-                cpu.quantum_time += processo->instruction[i]->parameter;
-                printf("\nExecutando o comando por %dms", time_slicing_local);
-                processo->instruction[i]->parameter -= time_slicing_local;
-                i++;
-                continue;
-            }
-            usleep(processo->instruction[i]->parameter * 1000); // Use the parameter value
+            printf("\nExecutando o comando por %dms", processo->quantum_time);
+            sys_call(PROCESS_RUN, processo, NULL, 0);
+            inicializar_processos_ready(get_bcp(), 0);
+            set_cpu_qt(get_cpu().quantum_time-processo->quantum_time);
         } 
         else if(strcmp(processo->instruction[i]->type, "read") == 0){
-            printf("\nLeitura por %dms", processo->instruction[i]->parameter);
-            //Ideia de simulação de tempo de leitura
-            //usleep(processo->instruction[i]->parameter * 2000); 
+            sys_call(DISK_REQUEST, processo, NULL, 0);
         }
         else if(strcmp(processo->instruction[i]->type, "write") == 0){
             printf("\nEscrita por %dms", processo->instruction[i]->parameter);
@@ -75,17 +63,17 @@ void executar_processo(BCP *processo){
             // Simulação de tempo de liberação do semáforo
             // usleep(50000); 
         }
-
-        time_slicing_local--;
-
     }
+    set_cpu_qt(time_slicing);
     
     //kill programa
     if(i>= MAX_INSTR){
-
+        printf("\nProcesso %d finalizado", processo->id);
+        sys_call(PROCESS_FINISH, processo, NULL, 0);
+        return;
     }  
 
-    if(time_slicing_local<=0){
+    if(get_cpu().quantum_time<=0){
         //chamar o próximo processo
         return loop_cpu();
     }
@@ -96,6 +84,14 @@ CPU get_cpu(){
     return cpu;
 }
 
+int get_cpu_pc(){
+    return pc;
+}
+
 void set_cpu_pc(int new_pc){
     pc = new_pc;
+}
+
+void set_cpu_qt(int qt){
+    cpu.quantum_time = qt;
 }

@@ -22,7 +22,10 @@ BCP* load_program(const char* file_path, int next_id) {
     process->state = READY;
     process->num_instr = 0;
     process->num_sem = 0;
-    process->rw_count = 0; 
+    process->rw_count = 0;
+    process->quantum_time = 0;
+    process->instr_index = 0;
+    process->next = NULL; 
 
     char line[128];
     fgets(process->name, MAX_NAME, file);
@@ -70,17 +73,16 @@ BCP* load_program(const char* file_path, int next_id) {
         if (read >= 1) {
             strcpy(inst->type, type);
             if(strcmp(type, "read") == 0 || strcmp(type, "write") == 0){
-                process->rw_count++;
                 process->quantum_time += BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
                 process->instruction[process->num_instr]->quantum_time = BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
             }
             if (read == 2) {
                 if (type[0] == 'P') {
                     strncpy(inst->sem, arg + 1, 7);  
-                    sys_call(SEMAPHORE_P, process, inst->sem);  
+                    sys_call(SEMAPHORE_P, process, inst->sem, 0);  
                 } else if(type[0] == 'V'){
                     strncpy(inst->sem, arg + 1, 7);  
-                    sys_call(SEMAPHORE_V, process, inst->sem);
+                    sys_call(SEMAPHORE_V, process, inst->sem, 0);
                 } else {
                     inst->parameter = atoi(arg);
                 }

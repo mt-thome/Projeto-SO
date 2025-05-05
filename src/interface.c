@@ -4,7 +4,7 @@
 
 #include "../include/interface.h"
 
-void show_menu() {
+int show_menu() {
     int option = 0;
     printf("UsmininOs");
     printf("Escolha uma opção:\n");
@@ -39,13 +39,11 @@ void show_menu() {
                 new->instruction[i] = malloc(100 * sizeof(char));
                 scanf("%s", new->instruction[i]);
                 char *cmd = strtok(new->instruction[i], " ");
-                if (strcmp(cmd, "read") == 0|| strcmp(cmd, "write") == 0) {
-                    new->num_io++;
-                }
             }
             new->state = READY;
             new->num_pages = 0;
             new->next = NULL;
+            new->rw_count = 0;
             new_process(NULL, new);
             break;
         case 2:
@@ -56,7 +54,7 @@ void show_menu() {
             break;
         case 4:
             printf("Saindo...\n");
-            exit(0);
+            return 1; // Sair do loop
         default:
             printf("Opção inválida. Tente novamente.\n");
     }
