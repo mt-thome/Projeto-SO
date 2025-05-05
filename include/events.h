@@ -30,10 +30,11 @@ typedef enum {
     PRINT_FINISH = 15
 } event;
 
-// Estrutura para semáforos
+// Variáveis globais para semáforos
 typedef struct {
     char name[MAX_NAME];
     int value;
+    int waiting_processes[MAX_SEM]; 
 } Semaphore;
 
 // Declaração das funções principais

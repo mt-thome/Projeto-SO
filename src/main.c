@@ -30,9 +30,9 @@ int main() {
     }
     
     // Inicializa os subsistemas
+    init_mem();
     init_bcp();
     init_cpu();
-    init_memory();
     
     while (running) {
         // Lê o arquivo de entrada

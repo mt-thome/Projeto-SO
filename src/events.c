@@ -1,15 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "../include/events.h"
-
-// Variáveis globais para semáforos
-typedef struct {
-    char name[MAX_NAME];
-    int value;
-    int waiting_processes[MAX_SEM]; // IDs dos processos esperando
-} Semaphore;
 
 Semaphore semaphores[MAX_SEM];
 int num_semaphores = 0;
@@ -90,15 +84,17 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
     switch (e) {
         case PROCESS_CREATE:
             new_process(NULL, proc);
+            return 0;
             break;
         
         case PROCESS_FINISH:
             proc->state = TERMINATED;
             printf("[PROCESSO] Processo %d finalizado\n", proc->id);
             end_process(proc);
+            return 0;
             break;
             
-        case SEMAPHORE_P:
+        case SEMAPHORE_P:{
             Semaphore* sem = find_semaphore(arg);
             if (sem) {
                 if (sem->value > 0) {
@@ -123,9 +119,11 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
                     return -1;
                 }
             }
+            return 0;
             break;
+        }
         
-        case SEMAPHORE_V:
+        case SEMAPHORE_V:{
             Semaphore* sem = find_semaphore(arg);
             if (sem) {
                 sem->value++;
@@ -136,36 +134,46 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
                 fprintf(stderr, "[ERRO] Semáforo %s não encontrado\n", arg);
                 return -1;
             }
+            return 0;
             break;
+        }
         
-        case MEM_LOAD_REQ:
+        case MEM_LOAD_REQ:{
             proc->state = BLOCKED;
             int tempo_carregamento = proc->instruction[instr_index]->quantum_time; 
             printf("[MEMÓRIA] Processo %d solicitou carregamento (%d unidades)\n", proc->id, tempo_carregamento);
             inicializar_processos_ready(get_bcp(), proc->instruction[instr_index]->quantum_time);
             // Aqui você pode adicionar lógica para alocar memória
+            return 0;
             break;
+        }
             
-        case DISK_REQUEST:
+        case DISK_REQUEST:{
             proc->state = BLOCKED;
             set_cpu_qt(time_slicing-proc->instruction[proc->instr_index]->quantum_time);
             printf("[DISCO] Processo %d solicitou E/S de disco (%d unidades)\n", proc->id, proc->instruction[instr_index]->quantum_time);
             inicializar_processos_ready(get_bcp(), proc->instruction[instr_index]->quantum_time);
+            return 0;
             break;
+        }
             
-        case PRINT_REQUEST:
+        case PRINT_REQUEST:{
             proc->state = BLOCKED;
             set_cpu_qt(time_slicing-proc->instruction[proc->instr_index]->parameter);
             printf("[DISCO] Processo %d solicitou E/S de disco (%d unidades)\n", proc->id, proc->instruction[instr_index]->parameter);
             inicializar_processos_ready(get_bcp(), proc->instruction[instr_index]->parameter);
+            return 0;
             break;
+        }
             
-        case FS_REQUEST:
+        case FS_REQUEST:{
             proc->state = BLOCKED;
             printf("[ARQUIVOS] Processo %d solicitou operação no sistema de arquivos\n", proc->id);
+            return 0;
             break;
+        }
             
-        case PROCESS_RUN:
+        case PROCESS_RUN:{
             proc->state = RUNNING;
             int tempo_exec = 0;
             int i = 0;
@@ -204,7 +212,7 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
             return -1;
     }
     return 0;
-}
+}}
 
 //void update_timers(BCP* proc, int instr_index) {
 //    if (!proc) {
