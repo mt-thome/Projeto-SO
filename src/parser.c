@@ -7,9 +7,7 @@
 
 // Cria um programa usando o arquivo de programa sintético
 BCP* load_program(const char* file_path, int next_id) {
-    printf("oi");
     FILE* file = fopen(file_path, "r");
-    printf("oi");
     if (!file) {
         perror("Erro ao abrir o arquivo do programa sintético");
         return NULL;
@@ -82,9 +80,7 @@ BCP* load_program(const char* file_path, int next_id) {
 
         char type[16], arg[16];
         int read = sscanf(line, "%s %s", type, arg);
-        printf("Process Indice : %d",process->num_instr);
-        printf("\nType %s e Arg %s",type,arg);
-        printf("\n%dRead",read);
+       
         if (read >= 1) {
             strcpy(inst->type, type);
             if(strcmp(type, "read") == 0 || strcmp(type, "write") == 0 || strcmp(type, "exec") == 0){
@@ -96,9 +92,11 @@ BCP* load_program(const char* file_path, int next_id) {
                 if (type[0] == 'P') {
                     strncpy(inst->sem, arg + 1, 7);  
                     sys_call(SEMAPHORE_P, process, inst->sem, 0);  
+
                 } else if(type[0] == 'V'){
                     strncpy(inst->sem, arg + 1, 7);  
                     sys_call(SEMAPHORE_V, process, inst->sem, 0);
+
                 } else {
                     inst->parameter = atoi(arg);
                 }

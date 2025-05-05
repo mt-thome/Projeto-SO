@@ -140,9 +140,9 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
         
         case MEM_LOAD_REQ:{
             proc->state = BLOCKED;
-            int tempo_carregamento = proc->instruction[instr_index]->quantum_time; 
+            int tempo_carregamento = proc->instruction[proc->instr_index]->quantum_time; 
             printf("[MEMÓRIA] Processo %d solicitou carregamento (%d unidades)\n", proc->id, tempo_carregamento);
-            inicializar_processos_ready(get_bcp(), proc->instruction[instr_index]->quantum_time);
+            inicializar_processos_ready(get_bcp(), proc->instruction[proc->instr_index]->quantum_time);
             // Aqui você pode adicionar lógica para alocar memória
             return 0;
             break;
@@ -151,8 +151,10 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
         case DISK_REQUEST:{
             proc->state = BLOCKED;
             set_cpu_qt(time_slicing-proc->instruction[proc->instr_index]->quantum_time);
-            printf("[DISCO] Processo %d solicitou E/S de disco (%d unidades)\n", proc->id, proc->instruction[instr_index]->quantum_time);
-            inicializar_processos_ready(get_bcp(), proc->instruction[instr_index]->quantum_time);
+            printf("[DISCO] Processo %d solicitou E/S de disco (%d unidades)\n", proc->id, proc->instruction[proc->instr_index]->quantum_time);
+            inicializar_processos_ready(get_bcp(), proc->instruction[proc->instr_index]->quantum_time);
+            proc->instr_index++;
+            executar_processo(proc);
             return 0;
             break;
         }
@@ -160,8 +162,8 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
         case PRINT_REQUEST:{
             proc->state = BLOCKED;
             set_cpu_qt(time_slicing-proc->instruction[proc->instr_index]->parameter);
-            printf("[DISCO] Processo %d solicitou E/S de disco (%d unidades)\n", proc->id, proc->instruction[instr_index]->parameter);
-            inicializar_processos_ready(get_bcp(), proc->instruction[instr_index]->parameter);
+            printf("[DISCO] Processo %d solicitou E/S de disco (%d unidades)\n", proc->id, proc->instruction[proc->instr_index]->parameter);
+            inicializar_processos_ready(get_bcp(), proc->instruction[proc->instr_index]->parameter);
             return 0;
             break;
         }
@@ -204,8 +206,10 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
                     }
         
                     // Atualiza tempo total e índice da próxima instrução
-                    tempo_exec += qt_instr;
+                    tempo_exec -= qt_instr;
                     proc->instr_index++;
+                    executar_processo(proc);
+                    return 0;
                 }
                 else {
                     // Quantum estourou — salva estado atual
@@ -228,6 +232,8 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
                     }
                     
                     printf("[QUANTUM] Processo %d atingiu limite de tempo. Restam %d unidades\n", proc->id, proc->quantum_time);
+                    printf("[QUANTUM] Processo %d atingiu limite de tempo. Restam %d unidades na instrução %d\n", proc->id, proc->instruction[proc->instr_index]->quantum_time, proc->instr_index);
+
                     break;
                 }
             }

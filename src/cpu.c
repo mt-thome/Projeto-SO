@@ -18,7 +18,6 @@ void init_cpu(){
 
 void loop_cpu(){
     BCP *processo_rodando = get_bcp();
-    printf("QUNATUM INSTR AI: %dviu??\n",processo_rodando->instruction[processo_rodando->num_instr]->quantum_time);
 
 
         inicializar_processos_ready(get_bcp() , 0); 
@@ -30,13 +29,11 @@ void loop_cpu(){
         // }
 
         if (!processo_rodando) {
-            printf("\n2");
 
             processo_rodando = retirar_processo(get_bcp());
         }
 
         if(processo_rodando){
-            printf("\n3");
 
             executar_processo(processo_rodando);
         }
@@ -45,15 +42,12 @@ void loop_cpu(){
 
 void executar_processo(BCP *processo){
     int i=processo->instr_index;
-    printf("e o max %d",MAX_INSTR);
     //  while(i < MAX_INSTR || get_cpu().quantum_time > 0){
     //     if(processo->quantum_time<=0){
     //         i++;
     //         continue;
     //     }
     if(strcmp(processo->instruction[i]->type, "exec") == 0){
-        printf("Processo quantm %d",processo->instruction[i]->quantum_time);
-        printf("Processo quantm %s",processo->instruction[i]->type);
 
         sys_call(PROCESS_RUN, processo, NULL, 0);
         inicializar_processos_ready(get_bcp(), 0);
@@ -64,6 +58,8 @@ void executar_processo(BCP *processo){
         }
         else if(strcmp(processo->instruction[i]->type, "write") == 0){
             printf("\nEscrita por %dms", processo->instruction[i]->parameter);
+            sys_call(DISK_REQUEST, processo, NULL, 0);
+
             // Ideia de simulação de tempo de escrita
             // usleep(processo->instruction[i]->parameter * 2000); // 
         }

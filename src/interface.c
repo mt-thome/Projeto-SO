@@ -6,7 +6,7 @@
 
 int show_menu() {
     int option = 0;
-    printf("UsmininOs");
+    printf("\nUsmininOs\n\n");
     printf("Escolha uma opção:\n");
     printf("1. Criar novo processo\n");
     printf("2. Listar processos\n");
@@ -39,8 +39,8 @@ int show_menu() {
             for (int i = 0; i < new->num_instr; i++) {
                 printf("Digite a instrução %d: ", i + 1);
                 new->instruction[i] = malloc(100 * sizeof(char));
-                scanf("%s", new->instruction[i]);
-                char *cmd = strtok(new->instruction[i], " ");
+                scanf("%s", new->instruction[i]->type);
+                char *cmd = strtok(new->instruction[i]->parameter, " ");
             }
             new->state = READY;
             new->num_pages = 0;
