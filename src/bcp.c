@@ -29,7 +29,7 @@ BCP *new_process(const char *file_path, BCP *new) {
     // Se o struct for NULL, significa que o processo é inserido lendo o arquivo
     else if (new == NULL) {
         // Carregar processo do arquivo sintético
-        new_proc = malloc(sizeof(BCP));
+        new_proc = load_program(file_path, next_id++);
         if (!new_proc) {
             fprintf(stderr, "Erro ao alocar memória para o novo processo.\n");
             return NULL;
@@ -81,6 +81,7 @@ BCP *new_process(const char *file_path, BCP *new) {
     // Adiciona o novo processo à lista de processos
     if (bcp_list == NULL) {
         bcp_list = new_proc;
+        
         new_proc->next = NULL;
 
     } else {

@@ -21,16 +21,16 @@ int main() {
     init_bcp();
     init_cpu();
     
-    while (running) {
        // Lê o arquivo de entrada
        BCP *process = load_program("resources/synthetic_2.txt", 0);
        if (process == NULL) {
            fprintf(stderr, "Erro ao carregar o programa.\n");
-           break;
+           return;
        }
 
        // Adiciona o processo à lista de processos
        new_process(NULL, process);
+      
 
        // Inicia o loop da CPU
        //loop_cpu();
@@ -38,8 +38,8 @@ int main() {
        if(show_menu()) {
            running = 0; // Sai do loop se a opção de sair for escolhida
        }
+
        
-    }    
 
     return 0;
 }

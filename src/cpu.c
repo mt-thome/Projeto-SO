@@ -18,7 +18,8 @@ void init_cpu(){
 
 void loop_cpu(){
     BCP *processo_rodando = get_bcp();
-    
+    printf("QUNATUM INSTR AI: %dviu??\n",processo_rodando->instruction[processo_rodando->num_instr]->quantum_time);
+
 
         inicializar_processos_ready(get_bcp() , 0); 
 
@@ -43,41 +44,43 @@ void loop_cpu(){
 }
 
 void executar_processo(BCP *processo){
-    int i=0;
-   
+    int i=processo->instr_index;
     printf("e o max %d",MAX_INSTR);
-     while(i < MAX_INSTR || get_cpu().quantum_time > 0){
-        if(processo->quantum_time<=0){
-            i++;
-            continue;
+    //  while(i < MAX_INSTR || get_cpu().quantum_time > 0){
+    //     if(processo->quantum_time<=0){
+    //         i++;
+    //         continue;
+    //     }
+    if(strcmp(processo->instruction[i]->type, "exec") == 0){
+        printf("Processo quantm %d",processo->instruction[i]->quantum_time);
+        printf("Processo quantm %s",processo->instruction[i]->type);
+
+        sys_call(PROCESS_RUN, processo, NULL, 0);
+        inicializar_processos_ready(get_bcp(), 0);
+        //set_cpu_qt(get_cpu().quantum_time-processo->quantum_time);
+    } 
+        else if(strcmp(processo->instruction[i]->type, "read") == 0){
+            sys_call(DISK_REQUEST, processo, NULL, 0);
         }
-        if(strcmp(processo->instruction[i]->type, "exec") == 0){
-            printf("\nExecutando o comando por %dms", processo->quantum_time);
-            sys_call(PROCESS_RUN, processo, NULL, 0);
-            // inicializar_processos_ready(get_bcp(), 0);
-            // set_cpu_qt(get_cpu().quantum_time-processo->quantum_time);
-        } 
-        // else if(strcmp(processo->instruction[i]->type, "read") == 0){
-        //     sys_call(DISK_REQUEST, processo, NULL, 0);
-        // }
-        // else if(strcmp(processo->instruction[i]->type, "write") == 0){
-        //     printf("\nEscrita por %dms", processo->instruction[i]->parameter);
-        //     // Ideia de simulação de tempo de escrita
-        //     // usleep(processo->instruction[i]->parameter * 2000); // 
-        // }
-        // else if(strcmp(processo->instruction[i]->type, "P") == 0){
-        //     printf("\nAcessando região crítica %d", atoi(processo->instruction[i]->sem));   
-        //     // Simulação de tempo de espera do semáforo
-        //     // usleep(50000); 50ms for semaphore operations
-        // }
-        // else if(strcmp(processo->instruction[i]->type, "V") == 0){
-        //     printf("\nRegião crítica liberada");
-        //     // Simulação de tempo de liberação do semáforo
-        //     // usleep(50000); 
-        // }
+        else if(strcmp(processo->instruction[i]->type, "write") == 0){
+            printf("\nEscrita por %dms", processo->instruction[i]->parameter);
+            // Ideia de simulação de tempo de escrita
+            // usleep(processo->instruction[i]->parameter * 2000); // 
+        }
+        else if(strcmp(processo->instruction[i]->type, "P") == 0){
+            printf("\nAcessando região crítica %d", atoi(processo->instruction[i]->sem));   
+            // Simulação de tempo de espera do semáforo
+            // usleep(50000); 50ms for semaphore operations
+        }
+        else if(strcmp(processo->instruction[i]->type, "V") == 0){
+            printf("\nRegião crítica liberada");
+            // Simulação de tempo de liberação do semáforo
+            // usleep(50000); 
+        }
         else
         {
-            i++;
+            processo->instr_index++;
+            executar_processo(processo);
         }
         
      }
@@ -95,7 +98,7 @@ void executar_processo(BCP *processo){
     //     return loop_cpu();
     // }
 
-}
+//}
 
 CPU get_cpu(){
     return cpu;

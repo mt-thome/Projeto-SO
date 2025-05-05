@@ -74,7 +74,6 @@ BCP* load_program(const char* file_path, int next_id) {
             return NULL;
         }
         
-        printf("\n%s",inst);
 
         inst->pc = get_next_id(); 
         inst->parameter = 0;
@@ -88,9 +87,9 @@ BCP* load_program(const char* file_path, int next_id) {
         printf("\n%dRead",read);
         if (read >= 1) {
             strcpy(inst->type, type);
-            if(strcmp(type, "read") == 0 || strcmp(type, "write") == 0){
+            if(strcmp(type, "read") == 0 || strcmp(type, "write") == 0 || strcmp(type, "exec") == 0){
                 process->quantum_time += BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
-                process->instruction[process->num_instr]->quantum_time = BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
+                inst->quantum_time = BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
             }
 
             if (read == 2) {

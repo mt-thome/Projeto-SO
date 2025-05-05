@@ -173,46 +173,80 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
             break;
         }
             
-        case PROCESS_RUN:{
+        case PROCESS_RUN: {
             proc->state = RUNNING;
             int tempo_exec = 0;
-            int i = 0;
-            int instr_index = 0;
-            if (proc->quantum_time > time_slicing) {
-                while(proc->instr_index < proc->num_instr) {
-                    if(tempo_exec+proc->instruction[proc->instr_index]->quantum_time < time_slicing) {
-                        if(strcmp(proc->instruction[instr_index]->type, "exec" == 0)) {
-                            tempo_exec += proc->instruction[instr_index]->quantum_time;
-                            instr_index++;
-                            usleep(tempo_exec * 1000);    
-                        }
-                        if(strcmp(proc->instruction[instr_index]->type, "read" == 0)) {
-                            proc->rw_count++;
-                            sys_call(DISK_REQUEST, proc, NULL, instr_index);
-                            tempo_exec += proc->instruction[instr_index]->quantum_time;
-                            instr_index++;
-                            usleep(tempo_exec * 1000);    
-                        }
-                         
-                    } else {
-                        proc->quantum_time -= tempo_exec;
-                        proc->instr_index = instr_index;
-                        usleep(proc->quantum_time * 1000);
-                        break;
+            
+            // Enquanto ainda houver instruções para executar
+            while (proc->instr_index < proc->num_instr) {
+                instr* current_instr = proc->instruction[proc->instr_index];
+                int qt_instr = current_instr->quantum_time;
+                
+                // Verifica se ainda cabe dentro do quantum total
+                if (tempo_exec + qt_instr <= time_slicing) {
+                    printf("\nteste oii");
+        
+                    // Simula instruções com base no tipo
+                    if (strcmp(current_instr->type, "exec") == 0) {
+                        printf("[EXEC] Processo %d executando por %d unidades\n", proc->id, qt_instr);
+                        usleep(qt_instr * 1000);
                     }
+                    else if (strcmp(current_instr->type, "read") == 0 || strcmp(current_instr->type, "write") == 0) {
+                        proc->rw_count++;
+                        printf("[E/S] Processo %d iniciando %s (%d unidades)\n", proc->id, current_instr->type, qt_instr);
+                        sys_call(DISK_REQUEST, proc, NULL, proc->instr_index);
+                        usleep(qt_instr * 1000);
+                    }
+                    else if (strcmp(current_instr->type, "print") == 0) {
+                        printf("[PRINT] Processo %d pediu impressão (%d)\n", proc->id, current_instr->parameter);
+                        sys_call(PRINT_REQUEST, proc, NULL, proc->instr_index);
+                        usleep(current_instr->parameter * 1000);
+                    }
+        
+                    // Atualiza tempo total e índice da próxima instrução
+                    tempo_exec += qt_instr;
+                    proc->instr_index++;
                 }
-                printf("[PROCESSO] Processo %d executando por %d unidades de tempo\n", proc->id, tempo_exec);     
-            }else {
-                sys_call(PROCESS_FINISH, proc, NULL, instr_index);
-                printf("[PROCESSO] Processo %d finalizado\n", proc->id);
+                else {
+                    // Quantum estourou — salva estado atual
+                    proc->quantum_time -= time_slicing;
+                    proc->instruction[proc->instr_index]->quantum_time-= time_slicing;
+                    if (strcmp(current_instr->type, "exec") == 0) {
+                        printf("[EXEC] Processo %d executando por %d unidades\n", proc->id, time_slicing);
+                        usleep(time_slicing * 1000);
+                    }
+                    else if (strcmp(current_instr->type, "read") == 0 || strcmp(current_instr->type, "write") == 0) {
+                        proc->rw_count++;
+                        printf("[E/S] Processo %d iniciando %s (%d unidades)\n", proc->id, current_instr->type, time_slicing);
+                        sys_call(DISK_REQUEST, proc, NULL, proc->instr_index);
+                        usleep(time_slicing * 1000);
+                    }
+                    else if (strcmp(current_instr->type, "print") == 0) {
+                        printf("[PRINT] Processo %d pediu impressão (%d)\n", proc->id, current_instr->parameter);
+                        sys_call(PRINT_REQUEST, proc, NULL, proc->instr_index);
+                        usleep(current_instr->parameter * 1000);
+                    }
+                    
+                    printf("[QUANTUM] Processo %d atingiu limite de tempo. Restam %d unidades\n", proc->id, proc->quantum_time);
+                    break;
+                }
+            }
+        
+            // Se terminou todas as instruções
+            if (proc->instr_index >= proc->num_instr) {
+                sys_call(PROCESS_FINISH, proc, NULL, 0);
                 set_cpu_qt(time_slicing);
             }
+        
+            break;
+        }
+        
         default:
             fprintf(stderr, "[ERRO] Chamada de sistema desconhecida: %d\n", e);
             return -1;
     }
     return 0;
-}}
+}
 
 //void update_timers(BCP* proc, int instr_index) {
 //    if (!proc) {

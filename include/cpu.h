@@ -5,7 +5,7 @@
 #include "../include/scheduler.h"
 #include "../include/events.h"
 
-#define time_slicing 100 // 100ms
+#define time_slicing 3000 // 100ms
 
 typedef struct CPU{
 

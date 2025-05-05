@@ -63,6 +63,7 @@ int show_menu() {
         default:
             printf("Opção inválida. Tente novamente.\n");
     }
+    show_menu();
 }
 
 // Função para mostrar os processos no sistema
