@@ -13,7 +13,7 @@ typedef struct {
     int reference[TOTAL_PAGES]; 
 } mem_manager;
 
-void mem_init(mem_manager *mem);
+void mem_init();
 int allocate_pages(mem_manager *mem, BCP *proc, int paginas);
 void free_pages(mem_manager *mem, BCP *proc);
 void swap_pages(mem_manager *mem, BCP *proc, int pagina_logica);

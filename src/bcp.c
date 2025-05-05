@@ -19,7 +19,7 @@ void init_bcp() {
 
 BCP *new_process(const char *file_path, BCP *new) {
     BCP *new_proc = NULL;
-    mem_manager *mem = get_memory_manager(mem);
+    mem_manager *mem = get_memory_manager();
     // Verifica se o programa a ser inserido esta correto
     if(file_path == NULL && new == NULL)
         fprintf(stderr, "Erro: Nenhum arquivo ou processo fornecido.\n");

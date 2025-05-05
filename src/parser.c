@@ -62,7 +62,7 @@ BCP* load_program(const char* file_path, int next_id) {
             return NULL;
         }
         
-        inst->pc = get_next_pc(); 
+        inst->pc = get_next_id(); 
         inst->parameter = 0;
         strcpy(inst->sem, "");
         strcpy(inst->type, "");

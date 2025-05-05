@@ -5,15 +5,20 @@
 #include "../include/memory.h"
 #include "../include/bcp.h"
 
-static mem_manager main_memory;
+static mem_manager *main_memory;
 static int memory_initialized = 0;
 static int clock_hand = PAGES_OS;
 
-void mem_init(mem_manager *mem) {
+void mem_init() {
+    main_memory = malloc(sizeof(mem_manager));
+    if (!main_memory) {
+        fprintf(stderr, "Erro ao alocar memória para o gerenciador de memória.\n");
+        exit(EXIT_FAILURE);
+    }
     for (int i = 0; i < TOTAL_PAGES; i++) {
-        mem->busy_page[i] = (i < PAGES_OS) ? 1 : 0;
-        mem->owner_page[i] = -1;
-        mem->reference[i] = 0;
+        get_memory_manager()->busy_page[i] = (i < PAGES_OS) ? 1 : 0;
+        get_memory_manager()->owner_page[i] = -1;
+        get_memory_manager()->reference[i] = 0;
     }
     memory_initialized = 1;
 }
@@ -54,7 +59,7 @@ void swap_pages(mem_manager *mem, BCP *proc, int logical_page) {
                 mem->reference[clock_hand] = 0;
             } else {
                 // swap
-                int old_owner = mem->owner_page[clock_hand];
+                //int old_owner = mem->owner_page[clock_hand];
                 mem->owner_page[clock_hand] = proc->id;
                 mem->reference[clock_hand] = 1;
                 proc->allocated_pages[logical_page] = clock_hand;
@@ -71,5 +76,5 @@ mem_manager* get_memory_manager() {
         memory_initialized = 1;
         printf("[MEM] Sistema de gerenciamento de memória inicializado.\n");
     }
-    return &main_memory;
+    return main_memory;
 }

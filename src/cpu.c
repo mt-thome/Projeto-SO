@@ -2,6 +2,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "../include/cpu.h"
 #include "../include/scheduler.h"
@@ -10,7 +11,6 @@ CPU cpu;
 int pc;
 
 void init_cpu(){
-    loop_cpu();
     cpu.pc = 0;
     cpu.quantum_time = 0;
     cpu.loop_ready = 1;
@@ -20,7 +20,7 @@ void loop_cpu(){
     BCP *processo_rodando;
     while(cpu.loop_ready){
 
-        inicializa_processos_ready(get_bcp() , 0); 
+        inicializar_processos_ready(get_bcp() , 0); 
         if (processo_rodando && processo_rodando->instruction[processo_rodando->num_instr]->pc >= processo_rodando->num_instr) {
             end_process(processo_rodando); 
             processo_rodando = NULL;
