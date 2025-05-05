@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "../include/cpu.h"
+#include "../include/scheduler.h"
 
 CPU cpu;
 int pc;

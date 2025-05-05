@@ -15,6 +15,7 @@ void mem_init(mem_manager *mem) {
         mem->owner_page[i] = -1;
         mem->reference[i] = 0;
     }
+    memory_initialized = 1;
 }
 
 int allocate_pages(mem_manager *mem, BCP *proc, int paginas) {
