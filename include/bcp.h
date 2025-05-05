@@ -6,9 +6,6 @@
 #define MAX_NAME 50
 #define MAX_PAGINAS 16
 
-#include "parser.h"
-#include "memory.h"
-
 typedef enum {
     READY,
     RUNNING,

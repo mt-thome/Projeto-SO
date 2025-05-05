@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../include/scheduler.h"
+#include "../include/bcp.h"
+#include "../include/memory.h"
 
 void colocar_processo_pilha (BCP **head, BCP *processo){
 

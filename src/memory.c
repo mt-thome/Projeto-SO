@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "../include/memory.h"
+#include "../include/bcp.h"
 
 static mem_manager main_memory;
 static int memory_initialized = 0;

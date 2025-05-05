@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../include/bcp.h"
+#include "../include/parser.h"
+#include "../include/memory.h"
 
 static BCP* bcp_list;
 static int next_id;
