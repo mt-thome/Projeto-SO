@@ -80,7 +80,11 @@ O sistema oferece comandos para monitorar o estado da simulação:
 3. Gerenciar Processos: Criar, iniciar e finalizar processos
 
 ## Créditos
-Desenvolvido como projeto educacional para a disciplina de Sistemas Operacionais.
+Desenvolvido como projeto educacional para a disciplina de Sistemas Operacionais por:
+- Breno Bernal
+- Felipe Matheus Possari
+- Matheus Thomé da Silva
+- Santiago Martins
 
 ## Notas de Implementação
 - O simulador utiliza usleep() para simular o tempo de execução das instruções
