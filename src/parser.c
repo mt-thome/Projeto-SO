@@ -19,7 +19,7 @@ BCP* load_program(const char* file_path, int next_id) {
         fclose(file);
         return NULL;
     }
-    process->id = get_next_id();
+    process->id = next_id;
     process->state = READY;
     process->num_instr = 0;
     process->num_sem = 0;
@@ -38,6 +38,7 @@ BCP* load_program(const char* file_path, int next_id) {
     char line[128];
     fgets(process->name, MAX_NAME, file);
     process->name[strcspn(process->name, "\n")] = 0;
+    printf("Processo %d: %s\n", process->id, process->name);
 
     fgets(line, sizeof(line), file);
     process->seg_id = atoi(line);
@@ -73,7 +74,7 @@ BCP* load_program(const char* file_path, int next_id) {
         }
         
 
-        inst->pc = get_next_id(); 
+        inst->pc = next_id; 
         inst->parameter = 0;
         strcpy(inst->sem, "");
         strcpy(inst->type, "");

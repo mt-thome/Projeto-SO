@@ -14,7 +14,7 @@ int get_next_id() {
 
 void init_bcp() {
     bcp_list = NULL;
-    next_id = 1;
+    next_id = 0;
 }
 
 BCP *new_process(const char *file_path, BCP *new) {

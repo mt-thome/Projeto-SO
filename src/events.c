@@ -32,7 +32,6 @@ int create_semaphore(const char* name, int initial_value) {
     strncpy(semaphores[num_semaphores].name, name, MAX_NAME);
     semaphores[num_semaphores].value = initial_value;
     num_semaphores++;
-    return 0;
 }
 
 // --- Implementação completa em português ---
@@ -183,10 +182,8 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
             while (proc->instr_index < proc->num_instr) {
                 instr* current_instr = proc->instruction[proc->instr_index];
                 int qt_instr = current_instr->quantum_time;
-                
                 // Verifica se ainda cabe dentro do quantum total
                 if (tempo_exec + qt_instr <= time_slicing) {
-                    printf("\nteste oii");
         
                     // Simula instruções com base no tipo
                     if (strcmp(current_instr->type, "exec") == 0) {
@@ -203,6 +200,14 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
                         printf("[PRINT] Processo %d pediu impressão (%d)\n", proc->id, current_instr->parameter);
                         sys_call(PRINT_REQUEST, proc, NULL, proc->instr_index);
                         usleep(current_instr->parameter * 1000);
+                    }
+                    else if(current_instr->type[0] == 'P'){
+                        printf("[SEMÁFORO] Processo %d solicitou P (%s)\n", proc->id, current_instr->sem);
+                        sys_call(SEMAPHORE_P, proc, current_instr->sem, proc->instr_index);
+                    }
+                    else if(current_instr->type[0] == 'V') {
+                        printf("[SEMÁFORO] Processo %d liberou V (%s)\n", proc->id, current_instr->sem);
+                        sys_call(SEMAPHORE_V, proc, current_instr->sem, proc->instr_index);
                     }
         
                     // Atualiza tempo total e índice da próxima instrução

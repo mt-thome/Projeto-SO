@@ -12,12 +12,13 @@ int show_menu() {
     printf("2. Listar processos\n");
     printf("3. Listar memória\n");
     printf("4. Sair\n");
-    printf("5. Loop de CPU por um time\n");
+    printf("5. Loop de CPU por um timing slice\n");
 
     scanf("%d", &option);
     switch (option) {
         case 1:
             BCP *new = malloc(sizeof(BCP));
+            char line[100];
             printf("Digite o nome do arquivo do programa sintético: ");
             scanf("%s", new->name);
             printf("Digite o ID do processo: ");
@@ -38,9 +39,12 @@ int show_menu() {
             scanf("%d", &new->num_instr);
             for (int i = 0; i < new->num_instr; i++) {
                 printf("Digite a instrução %d: ", i + 1);
-                new->instruction[i] = malloc(100 * sizeof(char));
-                scanf("%s", new->instruction[i]->type);
-                char *cmd = strtok(new->instruction[i]->parameter, " ");
+                scanf("%s", line);
+                new->instruction[i] = malloc(MAX_INSTR * sizeof(char));
+                char type[16], arg[16];
+                sscanf(line, "%s %s", type, arg);
+                strcpy(new->instruction[i]->type, type);
+                new->instruction[i]->parameter = atoi(arg);
             }
             new->state = READY;
             new->num_pages = 0;
@@ -64,20 +68,21 @@ int show_menu() {
             printf("Opção inválida. Tente novamente.\n");
     }
     show_menu();
+    return 0; // Continuar no loop
 }
 
 // Função para mostrar os processos no sistema
 void show_processes() {
     BCP *current = get_bcp(); 
     int count = 0;
-    
+
     printf("\n===== LISTA DE PROCESSOS =====\n");
     if (!current) {
         printf("Não há processos no sistema.\n");
         return;
     }
-    
-    printf("%-5s %-20s %-10s %-10s %-10s %-10s\n", "ID", "Nome", "Estado", "Prioridade", "Segmento", "Páginas");
+
+    // printf("%-5s %-20s %-10s %-10s %-10s %-10s\n", "ID", "Nome", "Estado", "Prioridade", "Segmento", "Páginas");
     while (current) {
         // Converte o estado do processo para texto
         char *estado;
@@ -89,7 +94,14 @@ void show_processes() {
             default: estado = "Desconhecido";
         }
         
-        printf("%-5d %-20s %-10s %-10d %-10d %-10d\n", current->id, current->name, estado, current->priority, current->seg_id, current->num_pages);
+        printf("ID: %d\n", current->id);
+        printf("Nome: %s\n", current->name);
+        printf("Estado: %s\n", estado);
+        printf("Prioridade: %d\n", current->priority);
+        printf("Segmento: %d\n", current->seg_id);
+        printf("Páginas: %d\n", current->num_pages);
+        
+        //printf("%-5d %-20s %-10s %-10d %-10d %-10d", current->id, current->name, estado, current->priority, current->seg_id, current->num_pages);
         count++;
         current = current->next;
     }
