@@ -14,6 +14,12 @@ void init_cpu(){
     cpu.pc = 0;
     cpu.quantum_time = 0;
     cpu.loop_ready = 1;
+    int lock = create_semaphore("IO", 1);
+    if(lock < 0) {
+        fprintf(stderr, "Erro ao criar semáforo para IO: %d\n", lock);
+    } else {
+        printf("Semáforo IO criado com sucesso.\n");
+    }
 }
 
 void loop_cpu(){

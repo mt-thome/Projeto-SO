@@ -30,7 +30,7 @@ BCP* load_program(const char* file_path, int next_id) {
 
     for(int i=0;i<MAX_INSTR;i++){
 
-        instr* inst = malloc(sizeof(instr));  // ✔️ correto
+        instr* inst = malloc(sizeof(instr)); 
         process->instruction[i] = inst;
     
     }
@@ -84,8 +84,40 @@ BCP* load_program(const char* file_path, int next_id) {
        
         if (read >= 1) {
             strcpy(inst->type, type);
-            if(strcmp(type, "read") == 0 || strcmp(type, "write") == 0 || strcmp(type, "exec") == 0){
+            if(strcmp(type, "exec") == 0) {
+                inst->parameter = atoi(arg);
+                inst->quantum_time = inst->parameter; // Define o tempo de execução da instrução
+            } else if (strcmp(type, "print") == 0) {
+                inst->parameter = atoi(arg);
+                inst->quantum_time = PRINT_TIME; // Define o tempo de impressão
+            }
+            if(strcmp(type, "read") == 0 || strcmp(type, "write") == 0){
                 process->quantum_time += BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
+                Semaphore *sem = find_semaphore("IO"); // Verifica se o semáforo IO existe
+                if (sem > 0) {
+                    sem->value--; // Decrementa o valor do semáforo IO
+                    if (sem->waiting_processes == NULL) {
+                        sem->waiting_processes = malloc(sizeof(int) * MAX_SEM);
+                        sem->waiting_processes->id_process = process->id ; // Adiciona o processo à lista de espera
+                }
+                else{
+                    process_node *proc_node = malloc(sizeof(process_node));
+                    proc_node->id_process = process->id;
+                    proc_node->quantum_time = BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
+                    proc_node->num_instr = process->num_instr;
+                    proc_node->next = NULL;
+
+                    sem->waiting_count++;
+                    process_node *curr = sem->waiting_processes;
+                    process_node *prev = NULL;
+
+                    while(curr->next != NULL || curr->quantum_time < proc_node->quantum_time) {
+                        prev = curr;
+                        curr = curr->next; 
+                    }
+                    proc_node->next = curr->next;
+                    curr->next = proc_node;
+                }
                 inst->quantum_time = BASE_DISK_TIME + atoi(arg) * SEEK_TIME_PER_TRACK;
             }
 

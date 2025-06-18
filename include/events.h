@@ -32,6 +32,8 @@ typedef enum {
 
 typedef struct process_node{
     int id_process; // Ponteiro para o processo
+    int quantum_time; // Tempo de execução restante
+    int num_instr; // Número de instruções (Uso somente para IO lock)
     struct process_node *next; // Próximo nó na lista
 }
 process_node;

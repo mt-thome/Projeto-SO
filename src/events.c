@@ -189,12 +189,62 @@ int sys_call(event e, BCP* proc, const char* arg, int instr_index) {
         }
             
         case DISK_REQUEST:{
-            proc->state = BLOCKED;
-            set_cpu_qt(time_slicing-proc->instruction[proc->instr_index]->quantum_time);
-            printf("[DISCO] Processo %d solicitou E/S de disco (%d unidades)\n", proc->id, proc->instruction[proc->instr_index]->quantum_time);
+            Semaphore *sem = find_semaphore("IO");
+            if (!sem) {
+                fprintf(stderr, "[ERRO] Semáforo IO não encontrado\n");
+                return -1;
+            }
+            
+            if (sem->value <= 0) {
+                // Recurso indisponível - adicionar à lista ordenada
+                printf("[DISCO] Processo %d bloqueado aguardando E/S de disco\n", proc->id);
+                
+                process_node *new_node = malloc(sizeof(process_node));
+                if (!new_node) {
+                    fprintf(stderr, "[ERRO] Falha ao alocar memória para processo na fila\n");
+                    return -1;
+                }
+                
+                new_node->id_process = proc->id;
+                new_node->quantum_time = proc->instruction[proc->instr_index]->quantum_time;
+                new_node->num_instr = proc->num_instr;
+                new_node->next = NULL;
+                
+                // Inserção ordenada por quantum_time crescente
+                if (sem->waiting_processes == NULL || 
+                    sem->waiting_processes->quantum_time > new_node->quantum_time) {
+                    // Inserir no início
+                    new_node->next = sem->waiting_processes;
+                    sem->waiting_processes = new_node;
+                } else {
+                    // Encontrar posição correta
+                    process_node *current = sem->waiting_processes;
+                    while (current->next != NULL && 
+                           current->next->quantum_time <= new_node->quantum_time) {
+                        current = current->next;
+                    }
+                    new_node->next = current->next;
+                    current->next = new_node;
+                }
+                
+                sem->waiting_count++;
+                proc->state = BLOCKED;
+                
+            } else {
+                // Recurso disponível - usar diretamente
+                sem->value--;
+                printf("[DISCO] Processo %d obteve acesso ao disco\n", proc->id);
+                proc->disco_em_uso = 1;
+                proc->state = BLOCKED; // Ainda fica bloqueado durante a operação
+            }
+            
+            set_cpu_qt(time_slicing - proc->instruction[proc->instr_index]->quantum_time);
+            printf("[DISCO] Processo %d solicitou E/S de disco (%d unidades)\n", 
+                   proc->id, proc->instruction[proc->instr_index]->quantum_time);
+            
             inicializar_processos_ready(get_bcp(), proc->instruction[proc->instr_index]->quantum_time);
             proc->instr_index++;
-            executar_processo(proc);
+            
             return 0;
             break;
         }
