@@ -30,18 +30,24 @@ typedef enum {
     PRINT_FINISH = 15
 } event;
 
-// Variáveis globais para semáforos
+typedef struct process_node{
+    int id_process; // Ponteiro para o processo
+    struct process_node *next; // Próximo nó na lista
+}
+process_node;
+
 typedef struct {
     char name[MAX_NAME];
     int value;
-    int waiting_processes[MAX_SEM]; 
+    process_node *waiting_processes; // Lista de processos esperando neste semáforo 
+    int waiting_count; // Contador de processos esperando
 } Semaphore;
+
+Semaphore* find_semaphore(const char* name);
+Semaphore* create_semaphore(const char* name, int initial_value);
 
 // Declaração das funções principais
 int interrupt_control(event e, BCP* proc, int instr_index);
 int sys_call(event e, BCP* proc, const char* arg, int instr_index);
-
-// Funções auxiliares (caso precise expor)
-Semaphore* find_semaphore(const char* name);
 
 #endif

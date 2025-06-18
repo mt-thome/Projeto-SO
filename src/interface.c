@@ -17,40 +17,11 @@ int show_menu() {
     scanf("%d", &option);
     switch (option) {
         case 1:
-            BCP *new = malloc(sizeof(BCP));
+            char name[MAX_NAME];
             char line[100];
-            printf("Digite o nome do arquivo do programa sintético: ");
-            scanf("%s", new->name);
-            printf("Digite o ID do processo: ");
-            scanf("%d", &new->id);
-            printf("Digite o ID do segmento: ");
-            scanf("%d", &new->seg_id);
-            printf("Digite o tamanho do segmento (em KB): ");
-            scanf("%d", &new->seg_size);
-            printf("Digite a prioridade do processo: ");
-            scanf("%d", &new->priority);
-            printf("Digite o número de semáforos: ");
-            scanf("%d", &new->num_sem);
-            for (int i = 0; i < new->num_sem; i++) {
-                printf("Digite o nome do semáforo %d: ", i + 1);
-                scanf("%s", new->semaforos[i]);
-            }
-            printf("Digite o número de instruções: ");
-            scanf("%d", &new->num_instr);
-            for (int i = 0; i < new->num_instr; i++) {
-                printf("Digite a instrução %d: ", i + 1);
-                scanf("%s", line);
-                new->instruction[i] = malloc(MAX_INSTR * sizeof(char));
-                char type[16], arg[16];
-                sscanf(line, "%s %s", type, arg);
-                strcpy(new->instruction[i]->type, type);
-                new->instruction[i]->parameter = atoi(arg);
-            }
-            new->state = READY;
-            new->num_pages = 0;
-            new->next = NULL;
-            new->rw_count = 0;
-            new_process(NULL, new);
+            printf("Digite o caminho do arquivo do programa sintético: ");
+            scanf("%s", name);
+            new_process(name); 
             break;
         case 2:
             show_processes(); 

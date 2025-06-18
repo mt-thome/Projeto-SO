@@ -20,7 +20,7 @@ int main() {
     init_bcp();
     init_cpu();
 
-    new_process("resources/synthetic_2.txt", NULL);
+    new_process("resources/synthetic_2.txt");
     
     // Mostra a interface
     show_menu();

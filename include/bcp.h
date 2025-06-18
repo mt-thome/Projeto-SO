@@ -47,7 +47,7 @@ typedef struct BCP {  // Adicionado nome da struct para auto-referência
 
 // Protótipos de funções atualizados
 void init_bcp(); // Inicializa estruturas do sistema de BCPs
-BCP *new_process(const char *file, BCP *new); // Adiciona parâmetro next
+BCP *new_process(const char *file); // Adiciona parâmetro next
 void end_process(BCP *proc); 
 BCP *get_process(int id); // Busca processo por ID
 BCP *get_bcp(); // Retorna a lista de processos

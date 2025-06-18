@@ -4,6 +4,7 @@
 #include "../include/bcp.h"
 #include "../include/parser.h"
 #include "../include/memory.h"
+#include "../include/events.h"
 
 static BCP* bcp_list;
 static int next_id;
@@ -14,28 +15,27 @@ int get_next_id() {
 
 void init_bcp() {
     bcp_list = NULL;
+    int lock = create_semaphores("BCP_Semaphore", 1); // Cria um semáforo para sincronização de acesso à lista de processos
     next_id = 0;
+    if(lock < 0) {
+        fprintf(stderr, "Erro ao criar semáforo para BCP: %d\n", lock);
+    } else {
+        printf("BCP inicializado com sucesso.\n");
+    }
 }
 
-BCP *new_process(const char *file_path, BCP *new) {
+BCP *new_process(const char *file_path) {
     BCP *new_proc = NULL;
     mem_manager *mem = get_memory_manager();
     // Verifica se o programa a ser inserido esta correto
-    if(file_path == NULL && new == NULL)
-        fprintf(stderr, "Erro: Nenhum arquivo ou processo fornecido.\n");
-    // Se o arquivo for NULL, significa que o processo é inserido pelo usuário
-    else if (file_path == NULL)
-        new_proc = new;
-    // Se o struct for NULL, significa que o processo é inserido lendo o arquivo
-    else if (new == NULL) {
-        // Carregar processo do arquivo sintético
-        new_proc = load_program(file_path, next_id++);
-        if (!new_proc) {
-            fprintf(stderr, "Erro ao alocar memória para o novo processo.\n");
-            return NULL;
-        }
-        
-        
+    if(file_path == NULL)
+        fprintf(stderr, "Erro: Nenhum arquivo fornecido.\n");
+
+    new_proc = load_program(file_path, next_id++);
+    if (!new_proc) {
+        fprintf(stderr, "Erro ao alocar memória para o novo processo.\n");
+        return NULL;
+    
         // Inicializa as páginas alocadas
         for (int i = 0; i < MAX_PAGINAS; i++) {
             new_proc->allocated_pages[i] = -1;
@@ -81,7 +81,6 @@ BCP *new_process(const char *file_path, BCP *new) {
     // Adiciona o novo processo à lista de processos
     if (bcp_list == NULL) {
         bcp_list = new_proc;
-        
         new_proc->next = NULL;
 
     } else {
@@ -92,7 +91,6 @@ BCP *new_process(const char *file_path, BCP *new) {
         temp->next = new_proc;
         new_proc->next = NULL;
     }
-
     printf("Novo processo criado com ID %d a partir do arquivo: %s\n", new_proc->id, file_path);
     return new_proc;
 }
@@ -103,12 +101,13 @@ void end_process(BCP *proc) {
         return;
     }
     printf("Finalizando processo %d (%s)...\n", proc->id, proc->name);
+    
     // Libera as páginas de memória alocadas
     mem_manager *mem = get_memory_manager();
     free_pages(mem, proc);
+
     // Remove o processo da lista encadeada
     if (bcp_list == proc) {
-        // Caso especial: removendo o primeiro processo da lista
         bcp_list = proc->next;
     } else {
         // Encontra o processo anterior na lista
@@ -117,10 +116,8 @@ void end_process(BCP *proc) {
             prev = prev->next;
         }
         if (prev) {
-            // Processo encontrado, ajusta os ponteiros
             prev->next = proc->next;
         } else {
-            // Processo não está na lista
             fprintf(stderr, "Aviso: Processo %d não encontrado na lista de processos.\n", proc->id);
         }
     }
